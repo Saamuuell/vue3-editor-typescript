@@ -9,12 +9,14 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'vue3-editor',
       fileName: 'vue3-editor',
+      formats: ['es', 'umd'],
     },
     rollupOptions: {
       external: ['vue', 'quill'],
       output: {
         globals: {
           vue: 'Vue',
+          quill: 'Quill'
         },
       },
     },

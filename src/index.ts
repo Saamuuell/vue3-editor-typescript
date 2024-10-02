@@ -1,7 +1,7 @@
 import Quill from 'quill';
 import VueEditor from './components/VueEditor.vue';
 
-const version: string = '0.1.0-alpha.2';
+const version: string = '1.0.0';
 
 // Declare install function executed by Vue.use()
 export function install(app: any): void {
@@ -38,5 +38,4 @@ const VPlugin: IVPlugin = {
 //   GlobalVue.use(VPlugin);
 // }
 
-export default VPlugin;
-export { VueEditor, Quill };
+export { VPlugin, VueEditor, Quill };

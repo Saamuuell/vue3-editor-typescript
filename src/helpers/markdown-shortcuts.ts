@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import Quill from 'quill';
 
-let BlockEmbed = Quill.import('blots/block/embed');
+let BlockEmbed: any = Quill.import('blots/block/embed');
 
 class HorizontalRule extends BlockEmbed {}
 
@@ -247,14 +247,17 @@ class MarkdownShortcuts {
     const selection = this.quill.getSelection();
     if (!selection) return;
     const [line, offset] = this.quill.getLine(selection.index);
-    const text = line.domNode.textContent;
-    const lineStart = selection.index - offset;
-    if (this.isValid(text, line.domNode.tagName)) {
-      for (let match of this.matches) {
-        const matchedText = text.match(match.pattern);
-        if (matchedText) {
-          match.action(text, selection, match.pattern, lineStart);
-          return;
+    if (line) {
+
+      const text = line.domNode.textContent;
+      const lineStart = selection.index - offset;
+      if (text && this.isValid(text, line.domNode.tagName)) {
+        for (let match of this.matches) {
+          const matchedText = text.match(match.pattern);
+          if (matchedText) {
+            match.action(text, selection, match.pattern, lineStart);
+            return;
+          }
         }
       }
     }
@@ -264,15 +267,17 @@ class MarkdownShortcuts {
     let selection = this.quill.getSelection();
     if (!selection) return;
     const [line, offset] = this.quill.getLine(selection.index);
-    const text = line.domNode.textContent + ' ';
-    const lineStart = selection.index - offset;
-    selection.length = selection.index++;
-    if (this.isValid(text, line.domNode.tagName)) {
-      for (let match of this.matches) {
-        const matchedText = text.match(match.pattern);
-        if (matchedText) {
-          match.action(text, selection, match.pattern, lineStart);
-          return;
+    if (line) {
+      const text = line.domNode.textContent + ' ';
+      const lineStart = selection.index - offset;
+      selection.length = selection.index++;
+      if (this.isValid(text, line.domNode.tagName)) {
+        for (let match of this.matches) {
+          const matchedText = text.match(match.pattern);
+          if (matchedText) {
+            match.action(text, selection, match.pattern, lineStart);
+            return;
+          }
         }
       }
     }

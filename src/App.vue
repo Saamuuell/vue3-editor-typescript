@@ -22,9 +22,9 @@ import Quill from 'quill';
 import VueEditor from './components/VueEditor.vue';
 
 const AlignStyle = Quill.import('attributors/style/align');
-Quill.register(AlignStyle, true);
+Quill.register(AlignStyle as any, true);
 
-const BlockEmbed = Quill.import('blots/block/embed');
+const BlockEmbed: any = Quill.import('blots/block/embed');
 
 const CLIENT_ID = '993793b1d8d3e2e';
 

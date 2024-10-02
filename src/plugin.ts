@@ -3,15 +3,15 @@
  *   This file is plugin stub for main.js
  */
 
-import plugin from "./index";
-const { Quill, version } = plugin;
+import { VPlugin } from "./index";
+const { Quill, version } = VPlugin;
 
-console.log("TCL: plugin", plugin);
+console.log("TCL: plugin", VPlugin);
 console.log("TCL: version", version);
 console.log("TCL: Quill", Quill);
 
 export const install = (app: any) => {
-  app.use(plugin);
+  app.use(VPlugin);
 };
 
 /*

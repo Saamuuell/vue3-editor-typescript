@@ -1,5 +1,5 @@
 import Quill from 'quill';
-const Link = Quill.import('formats/link');
+const Link: any = Quill.import('formats/link');
 
 export default class CustomLink extends Link {
   static sanitize(url: string) {

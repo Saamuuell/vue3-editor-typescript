@@ -5,6 +5,7 @@ import Quill from 'quill';
 import mergeDeep from '../helpers/merge-deep';
 import MarkdownShortcuts from '../helpers/markdown-shortcuts';
 import CustomLink from '../helpers/custom-link';
+import Toolbar from 'quill/modules/toolbar';
 
 const defaultToolbar = [
   [{ header: [false, 1, 2, 3, 4, 5, 6] }],
@@ -59,7 +60,7 @@ function setupQuillEditor () {
   };
 
   prepareEditorConfig(editorConfig);
-  quill.value = new Quill(getCurrentInstance()?.refs.quillContainer as Element, editorConfig);
+  quill.value = new Quill(getCurrentInstance()?.refs.quillContainer as HTMLElement, editorConfig);
 };
 
 function setModules() {
@@ -153,7 +154,7 @@ function checkForCustomImageHandler ()  {
 };
 
 function setupCustomImageHandler  ()  {
-  let toolbar = quill.value.getModule('toolbar');
+  let toolbar = quill.value.getModule('toolbar') as Toolbar;
   toolbar.addHandler('image', customImageHandler);
 };
 
