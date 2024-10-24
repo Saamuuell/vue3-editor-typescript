@@ -1,11 +1,11 @@
 <!-- eslint-disable no-unused-vars -->
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue';
 import Quill from 'quill';
-import mergeDeep from '../helpers/merge-deep';
-import MarkdownShortcuts from '../helpers/markdown-shortcuts';
-import CustomLink from '../helpers/custom-link';
 import Toolbar from 'quill/modules/toolbar';
+import { getCurrentInstance, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import CustomLink from '../helpers/custom-link';
+import MarkdownShortcuts from '../helpers/markdown-shortcuts';
+import mergeDeep from '../helpers/merge-deep';
 
 const defaultToolbar = [
   [{ header: [false, 1, 2, 3, 4, 5, 6] }],
@@ -35,6 +35,7 @@ const props = defineProps({
   useMarkdownShortcuts: Boolean,
   prependLinksHttps: Boolean,
   customModules: Array,
+  customToolBar: Boolean,
 });
 
 const emits = defineEmits([
@@ -50,7 +51,7 @@ const emits = defineEmits([
   'update:modelValue',
 ]);
 
-function setupQuillEditor () {
+function setupQuillEditor() {
   let editorConfig = {
     debug: false,
     modules: setModules(),
@@ -61,12 +62,19 @@ function setupQuillEditor () {
 
   prepareEditorConfig(editorConfig);
   quill.value = new Quill(getCurrentInstance()?.refs.quillContainer as HTMLElement, editorConfig);
-};
+}
 
 function setModules() {
-  let modules = {
-    toolbar: props.editorToolbar.length ? props.editorToolbar : defaultToolbar,
-  };
+  let modules = {};
+  if (props.customToolBar) {
+    modules = {
+      toolbar: props.editorToolbar.length ? props.editorToolbar : defaultToolbar,
+    };
+  } else {
+    modules = {
+      toolbar: '#customToolbar',
+    };
+  }
   if (props.useMarkdownShortcuts) {
     Quill.register('modules/markdownShortcuts', MarkdownShortcuts, true);
     // @ts-ignore
@@ -76,94 +84,98 @@ function setModules() {
     Quill.register('formats/link', CustomLink, true);
   }
   return modules;
-};
+}
 
-function prepareEditorConfig (editorConfig: any) {
-  if (Object.keys(props.editorOptions ?? {}).length > 0 && props.editorOptions?.constructor === Object) {
+function prepareEditorConfig(editorConfig: any) {
+  if (
+    Object.keys(props.editorOptions ?? {}).length > 0 &&
+    props.editorOptions?.constructor === Object
+  ) {
     if (props.editorOptions.modules && typeof props.editorOptions.modules.toolbar !== 'undefined') {
       delete editorConfig.modules.toolbar;
     }
 
     mergeDeep(editorConfig, props.editorOptions);
   }
-};
+}
 
 function registerCustomModules(Quill: any): void {
-      if (props.customModules !== undefined) {
-        props.customModules.forEach((customModule: any) => {
-          Quill.register('modules/' + customModule.alias, customModule.module);
-        });
-      }
-    }
+  if (props.customModules !== undefined) {
+    props.customModules.forEach((customModule: any) => {
+      Quill.register('modules/' + customModule.alias, customModule.module);
+    });
+  }
+}
 
-    function registerPrototypes ()  {
+function registerPrototypes() {
   // @ts-ignore
-  Quill.prototype.getHTML = function() {
+  Quill.prototype.getHTML = function () {
     return this.root.querySelector('.ql-editor')?.innerHTML;
   };
   // @ts-ignore
-  Quill.prototype.getWordCount = function() {
+  Quill.prototype.getWordCount = function () {
     return this.root.querySelector('.ql-editor')?.textContent?.length;
   };
-};
+}
 
-function registerEditorEventListeners  () {
+function registerEditorEventListeners() {
   quill.value.on('text-change', handleTextChange);
   quill.value.on('selection-change', handleSelectionChange);
   listenForEditorEvent('text-change');
   listenForEditorEvent('selection-change');
   listenForEditorEvent('editor-change');
-};
+}
 
-function listenForEditorEvent (type: string)  {
+function listenForEditorEvent(type: string) {
   // @ts-ignore
   quill.value.on(type, (...args) => emits(type, ...args));
-};
+}
 
-function handleInitialContent () {
+function handleInitialContent() {
   if (props.modelValue) quill.value.root.innerHTML = props.modelValue;
-};
+}
 
-function handleSelectionChange (range: any, oldRange: any) {
+function handleSelectionChange(range: any, oldRange: any) {
   if (!range && oldRange) emits('blur', quill.value);
   else if (range && !oldRange) emits('focus', quill.value);
-};
+}
 
-function handleTextChange(delta: any, oldContents: any)  {
-  let editorContent = quill.value.root.innerHTML === '<p><br></p>' ? '' : quill.value.root.innerHTML;
+function handleTextChange(delta: any, oldContents: any) {
+  let editorContent =
+    quill.value.root.innerHTML === '<p><br></p>' ? '' : quill.value.root.innerHTML;
   emits('update:modelValue', editorContent);
 
   if (props.useCustomImageHandler) handleImageRemoved(delta, oldContents);
-};
+}
 
-function handleImageRemoved (_delta: any, oldContents: any) {
+function handleImageRemoved(_delta: any, oldContents: any) {
   const currrentContents = quill.value.getContents();
   const deletedContents = currrentContents.diff(oldContents);
   const operations = deletedContents.ops;
 
-  operations.map(operation => {
+  operations.map((operation) => {
     if (operation.insert && operation.insert.hasOwnProperty('image')) {
       const { image } = operation.insert as Record<string, unknown>;
       emits('image-removed', image);
     }
   });
-};
+}
 
-function checkForCustomImageHandler ()  {
+function checkForCustomImageHandler() {
   props.useCustomImageHandler === true ? setupCustomImageHandler() : '';
-};
+}
 
-function setupCustomImageHandler  ()  {
+function setupCustomImageHandler() {
   let toolbar = quill.value.getModule('toolbar') as Toolbar;
   toolbar.addHandler('image', customImageHandler);
-};
+}
 
-function customImageHandler ()  {
+function customImageHandler() {
   fileInput.value.click();
-};
+}
 
-function emitImageInfo ($event: Event)  {
-  const resetUploader = function() {
+function emitImageInfo($event: Event) {
+  const resetUploader = function () {
     var uploader = document.getElementById('file-upload');
     if (uploader) {
       (uploader as HTMLInputElement).value = '';
@@ -174,7 +186,7 @@ function emitImageInfo ($event: Event)  {
   let range = Editor.getSelection();
   let cursorLocation = range ? range.index : 0;
   emits('image-added', file, Editor, cursorLocation, resetUploader);
-};
+}
 
 onMounted(() => {
   registerCustomModules(Quill);
@@ -187,25 +199,31 @@ onBeforeUnmount(() => {
   // delete quill.value;
 });
 
-watch(() => props.modelValue, (val) => {
-  if (val != quill.value.root.innerHTML && !quill.value.hasFocus()) {
-    quill.value.root.innerHTML = val ?? '';
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val != quill.value.root.innerHTML && !quill.value.hasFocus()) {
+      quill.value.root.innerHTML = val ?? '';
+    }
   }
-});
+);
 
-watch(() => props.disabled, (status) => {
-  quill.value.enable(!status);
-});
+watch(
+  () => props.disabled,
+  (status) => {
+    quill.value.enable(!status);
+  }
+);
 
 watch(() => props.useCustomImageHandler, checkForCustomImageHandler);
 
-function initializeEditor  ()  {
+function initializeEditor() {
   setupQuillEditor();
   checkForCustomImageHandler();
   handleInitialContent();
   registerEditorEventListeners();
   emits('ready', quill.value);
-};
+}
 </script>
 
 <template>
@@ -218,7 +236,7 @@ function initializeEditor  ()  {
       ref="fileInput"
       type="file"
       accept="image/*"
-      style="display:none;"
+      style="display: none"
       @change="emitImageInfo($event)"
     />
   </div>
